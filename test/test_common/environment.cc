@@ -309,7 +309,14 @@ std::string TestEnvironment::runfilesDirectory(const std::string& workspace) {
 
 std::string TestEnvironment::runfilesPath(const std::string& path, const std::string& workspace) {
   RELEASE_ASSERT(runfiles_ != nullptr, "");
-  return runfiles_->Rlocation(absl::StrCat(workspace, "/", path));
+  // In bzlmod mode, the workspace name is _main instead of envoy
+  // Try both to support both WORKSPACE and bzlmod modes
+  std::string result = runfiles_->Rlocation(absl::StrCat(workspace, "/", path));
+  if (result.empty() && workspace == "envoy") {
+    // If not found with 'envoy' workspace, try '_main' for bzlmod compatibility
+    result = runfiles_->Rlocation(absl::StrCat("_main", "/", path));
+  }
+  return result;
 }
 
 const std::string TestEnvironment::unixDomainSocketDirectory() {
