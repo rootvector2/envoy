@@ -52,19 +52,23 @@ index 4088bc4..520135f 100644
 -py -3 %EMSCRIPTEN%\emcc.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emcc.py %*
 diff --git a/bazel/emscripten_toolchain/emcc.sh b/bazel/emscripten_toolchain/emcc.sh
-index 5fdaf9c..f0f36ab 100755
+index 5fdaf9c..1dbac8c 100755
 --- a/bazel/emscripten_toolchain/emcc.sh
 +++ b/bazel/emscripten_toolchain/emcc.sh
-@@ -1,5 +1,12 @@
+@@ -1,5 +1,16 @@
 -#!/bin/bash
 +#!/bin/bash -e
  
  source $(dirname $0)/env.sh
  
 -exec python3 $EMSCRIPTEN/emcc.py "$@"
++echo "DEBUG: EMSDK_PYTHON before=$EMSDK_PYTHON ROOT_DIR=$ROOT_DIR" >&2
 +if [[ "$EMSDK_PYTHON" != /* ]]; then
 +    EMSDK_PYTHON="$ROOT_DIR/$EMSDK_PYTHON"
 +fi
++echo "DEBUG: EMSDK_PYTHON after=$EMSDK_PYTHON" >&2
++echo "DEBUG: Checking if Python exists: ls -la \"$EMSDK_PYTHON\" 2>&1" >&2
++ls -la "$EMSDK_PYTHON" 2>&1 || echo "DEBUG: Python file not found!" >&2
 +
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
@@ -279,7 +283,7 @@ index d7d6142..0da7f55 100644
    tar = tarfile.open(args.archive)
  
 diff --git a/bazel/emscripten_toolchain/wasm_cc_binary.bzl b/bazel/emscripten_toolchain/wasm_cc_binary.bzl
-index e7bd8ef..f28af5c 100644
+index e7bd8ef..ecae605 100644
 --- a/bazel/emscripten_toolchain/wasm_cc_binary.bzl
 +++ b/bazel/emscripten_toolchain/wasm_cc_binary.bzl
 @@ -66,6 +66,7 @@ _ALLOW_OUTPUT_EXTNAMES = [
@@ -345,7 +349,7 @@ index e7bd8ef..f28af5c 100644
      outputs = [
          ctx.outputs.loader,
          ctx.outputs.wasm,
-@@ -144,19 +153,30 @@ def _wasm_cc_binary_legacy_impl(ctx):
+@@ -144,19 +153,37 @@ def _wasm_cc_binary_legacy_impl(ctx):
          ctx.outputs.data,
          ctx.outputs.symbols,
          ctx.outputs.dwarf,
@@ -367,18 +371,25 @@ index e7bd8ef..f28af5c 100644
 +    python_path = py_toolchain.py3_runtime.interpreter.path
 +    env = dict(ctx.configuration.default_shell_env)
 +    env["PATH"] = "%s:/usr/bin:/bin" % python_path.rpartition("/")[0]
++
++    py_toolchain = ctx.toolchains["@rules_python//python:toolchain_type"]
++    python_path = py_toolchain.py3_runtime.interpreter.path
++    env = dict(ctx.configuration.default_shell_env)
++    env["PATH"] = "%s:/usr/bin:/bin" % python_path.rpartition("/")[0]
++
      ctx.actions.run(
 -        inputs = ctx.files.cc_target,
 +        inputs = inputs + py_toolchain.py3_runtime.files.to_list(),
          outputs = outputs,
 -        arguments = [args],
          executable = ctx.executable._wasm_binary_extractor,
++        env = env,
 +        arguments = [args],
 +        env = env,
      )
  
      return [
-@@ -191,6 +211,7 @@ def _wasm_binary_legacy_outputs(name, cc_target):
+@@ -191,6 +218,7 @@ def _wasm_binary_legacy_outputs(name, cc_target):
          "data": "{}/{}.data".format(name, basename),
          "symbols": "{}/{}.js.symbols".format(name, basename),
          "dwarf": "{}/{}.wasm.debug.wasm".format(name, basename),
@@ -386,7 +397,7 @@ index e7bd8ef..f28af5c 100644
          "html": "{}/{}.html".format(name, basename),
      }
  
-@@ -200,6 +221,7 @@ _wasm_cc_binary_legacy = rule(
+@@ -200,6 +228,7 @@ _wasm_cc_binary_legacy = rule(
      implementation = _wasm_cc_binary_legacy_impl,
      attrs = _WASM_BINARY_COMMON_ATTRS,
      outputs = _wasm_binary_legacy_outputs,
