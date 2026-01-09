@@ -25,14 +25,18 @@ index c806808..bb147b3 100644
 -py -3 %EMSCRIPTEN%\emar.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emar.py %*
 diff --git a/bazel/emscripten_toolchain/emar.sh b/bazel/emscripten_toolchain/emar.sh
-index b4ead6e..3509975 100755
+index b4ead6e..d57222f 100755
 --- a/bazel/emscripten_toolchain/emar.sh
 +++ b/bazel/emscripten_toolchain/emar.sh
-@@ -2,4 +2,7 @@
+@@ -2,4 +2,11 @@
  
  source $(dirname $0)/env.sh
  
 -exec python3 $EMSCRIPTEN/emar.py "$@"
++if [[ "$EMSDK_PYTHON" != /* ]]; then
++    EMSDK_PYTHON="$ROOT_DIR/$EMSDK_PYTHON"
++fi
++
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
@@ -48,16 +52,20 @@ index 4088bc4..520135f 100644
 -py -3 %EMSCRIPTEN%\emcc.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emcc.py %*
 diff --git a/bazel/emscripten_toolchain/emcc.sh b/bazel/emscripten_toolchain/emcc.sh
-index 5fdaf9c..f9ff37c 100755
+index 5fdaf9c..f0f36ab 100755
 --- a/bazel/emscripten_toolchain/emcc.sh
 +++ b/bazel/emscripten_toolchain/emcc.sh
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,12 @@
 -#!/bin/bash
 +#!/bin/bash -e
  
  source $(dirname $0)/env.sh
  
 -exec python3 $EMSCRIPTEN/emcc.py "$@"
++if [[ "$EMSDK_PYTHON" != /* ]]; then
++    EMSDK_PYTHON="$ROOT_DIR/$EMSDK_PYTHON"
++fi
++
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
@@ -73,14 +81,18 @@ index f49cb0d..ccafa13 100644
 -py -3 %~dp0\link_wrapper.py %*
 +%EMSDK_PYTHON% %~dp0\link_wrapper.py %*
 diff --git a/bazel/emscripten_toolchain/emcc_link.sh b/bazel/emscripten_toolchain/emcc_link.sh
-index 44f3235..57cc819 100755
+index 44f3235..950e529 100755
 --- a/bazel/emscripten_toolchain/emcc_link.sh
 +++ b/bazel/emscripten_toolchain/emcc_link.sh
-@@ -2,4 +2,7 @@
+@@ -2,4 +2,11 @@
  
  source $(dirname $0)/env.sh
  
 -exec python3 $(dirname $0)/link_wrapper.py "$@"
++if [[ "$EMSDK_PYTHON" != /* ]]; then
++    EMSDK_PYTHON="$ROOT_DIR/$EMSDK_PYTHON"
++fi
++
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
