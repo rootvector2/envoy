@@ -300,7 +300,13 @@ const std::string& TestEnvironment::temporaryDirectory() {
 
 std::string TestEnvironment::runfilesDirectory(const std::string& workspace) {
   RELEASE_ASSERT(runfiles_ != nullptr, "");
+  // In bzlmod mode, the workspace name is _main instead of envoy
+  // Try both to support both WORKSPACE and bzlmod modes
   auto path = runfiles_->Rlocation(workspace);
+  if (path.empty() && workspace == "envoy") {
+    // If not found with 'envoy' workspace, try '_main' for bzlmod compatibility
+    path = runfiles_->Rlocation("_main");
+  }
 #ifdef WIN32
   path = std::regex_replace(path, std::regex("\\\\"), "/");
 #endif
