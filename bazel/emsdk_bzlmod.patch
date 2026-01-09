@@ -372,18 +372,11 @@ index e7bd8ef..ecae605 100644
 +    env = dict(ctx.configuration.default_shell_env)
 +    env["PATH"] = "%s:/usr/bin:/bin" % python_path.rpartition("/")[0]
 +
-+    py_toolchain = ctx.toolchains["@rules_python//python:toolchain_type"]
-+    python_path = py_toolchain.py3_runtime.interpreter.path
-+    env = dict(ctx.configuration.default_shell_env)
-+    env["PATH"] = "%s:/usr/bin:/bin" % python_path.rpartition("/")[0]
-+
      ctx.actions.run(
 -        inputs = ctx.files.cc_target,
 +        inputs = inputs + py_toolchain.py3_runtime.files.to_list(),
          outputs = outputs,
--        arguments = [args],
          executable = ctx.executable._wasm_binary_extractor,
-+        env = env,
 +        arguments = [args],
 +        env = env,
      )
