@@ -14,30 +14,6 @@ index 0d7aff2..6d8fadc 100644
 +    ],
 +)
  """
-diff --git a/bazel/emscripten_toolchain/dwp.bat b/bazel/emscripten_toolchain/dwp.bat
-new file mode 100644
-index 0000000..85ed4b5
---- /dev/null
-+++ b/bazel/emscripten_toolchain/dwp.bat
-@@ -0,0 +1,4 @@
-+@echo off
-+REM Dummy dwp script for emscripten toolchain
-+REM Since wasm doesn't support split debug info, this is a no-op
-+exit /b 0
-diff --git a/bazel/emscripten_toolchain/dwp.sh b/bazel/emscripten_toolchain/dwp.sh
-new file mode 100755
-index 0000000..50a1d80
---- /dev/null
-+++ b/bazel/emscripten_toolchain/dwp.sh
-@@ -0,0 +1,8 @@
-+#!/bin/bash
-+
-+# Dummy dwp script for emscripten toolchain
-+# Since wasm doesn't support split debug info, this is a no-op
-+# Just echo the command for debugging and exit successfully
-+
-+echo "DWP called with args: $@" >&2
-+exit 0
 diff --git a/bazel/emscripten_toolchain/emar.bat b/bazel/emscripten_toolchain/emar.bat
 index c806808..bb147b3 100644
 --- a/bazel/emscripten_toolchain/emar.bat
@@ -49,10 +25,10 @@ index c806808..bb147b3 100644
 -py -3 %EMSCRIPTEN%\emar.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emar.py %*
 diff --git a/bazel/emscripten_toolchain/emar.sh b/bazel/emscripten_toolchain/emar.sh
-index b4ead6e..20b6eb2 100755
+index b4ead6e..3509975 100755
 --- a/bazel/emscripten_toolchain/emar.sh
 +++ b/bazel/emscripten_toolchain/emar.sh
-@@ -2,4 +2,8 @@
+@@ -2,4 +2,7 @@
  
  source $(dirname $0)/env.sh
  
@@ -72,10 +48,10 @@ index 4088bc4..520135f 100644
 -py -3 %EMSCRIPTEN%\emcc.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emcc.py %*
 diff --git a/bazel/emscripten_toolchain/emcc.sh b/bazel/emscripten_toolchain/emcc.sh
-index 5fdaf9c..34c09f7 100755
+index 5fdaf9c..f9ff37c 100755
 --- a/bazel/emscripten_toolchain/emcc.sh
 +++ b/bazel/emscripten_toolchain/emcc.sh
-@@ -1,5 +1,9 @@
+@@ -1,5 +1,8 @@
 -#!/bin/bash
 +#!/bin/bash -e
  
@@ -86,19 +62,6 @@ index 5fdaf9c..34c09f7 100755
 +export PATH=$PYBINPATH:$PATH
 +
 +exec $EMSDK_PYTHON $EMSCRIPTEN/emcc.py "$@"
-diff --git a/bazel/emscripten_toolchain/emcc_base.sh b/bazel/emscripten_toolchain/emcc_base.sh
-new file mode 100755
-index 0000000..e9ddd2c
---- /dev/null
-+++ b/bazel/emscripten_toolchain/emcc_base.sh
-@@ -0,0 +1,7 @@
-+#!/bin/bash
-+
-+source $(dirname $0)/env.sh
-+
-+PYTHON3="${PYTHON3:-python3}"
-+
-+exec $PYTHON3 $EMSCRIPTEN/emcc.py "$@"
 diff --git a/bazel/emscripten_toolchain/emcc_link.bat b/bazel/emscripten_toolchain/emcc_link.bat
 index f49cb0d..ccafa13 100644
 --- a/bazel/emscripten_toolchain/emcc_link.bat
@@ -110,10 +73,10 @@ index f49cb0d..ccafa13 100644
 -py -3 %~dp0\link_wrapper.py %*
 +%EMSDK_PYTHON% %~dp0\link_wrapper.py %*
 diff --git a/bazel/emscripten_toolchain/emcc_link.sh b/bazel/emscripten_toolchain/emcc_link.sh
-index 44f3235..0095668 100755
+index 44f3235..57cc819 100755
 --- a/bazel/emscripten_toolchain/emcc_link.sh
 +++ b/bazel/emscripten_toolchain/emcc_link.sh
-@@ -2,4 +2,8 @@
+@@ -2,4 +2,7 @@
  
  source $(dirname $0)/env.sh
  
@@ -122,86 +85,6 @@ index 44f3235..0095668 100755
 +export PATH=$PYBINPATH:$PATH
 +
 +exec $EMSDK_PYTHON $(dirname $0)/link_wrapper.py "$@"
-diff --git a/bazel/emscripten_toolchain/emdwp-emscripten_bin_linux.sh b/bazel/emscripten_toolchain/emdwp-emscripten_bin_linux.sh
-new file mode 100755
-index 0000000..513feee
---- /dev/null
-+++ b/bazel/emscripten_toolchain/emdwp-emscripten_bin_linux.sh
-@@ -0,0 +1,10 @@
-+#!/bin/bash
-+#
-+#  This script differs in form from emcc.{py,bat}/…, because bazel are limited/bugged in the way of executing dwp tool.
-+#  Bazel dwp action configuration does not pass environment variables, so we cannot use them in this script.
-+#  For more info, see PR discussion and bazel issue:
-+#  - https://github.com/emscripten-core/emsdk/pull/1531#discussion_r1962090650
-+#  - https://github.com/bazelbuild/bazel/issues/25336
-+#
-+
-+exec external/emscripten_bin_linux/bin/llvm-dwp "$@"
-diff --git a/bazel/emscripten_toolchain/emdwp-emscripten_bin_linux_arm64.sh b/bazel/emscripten_toolchain/emdwp-emscripten_bin_linux_arm64.sh
-new file mode 100755
-index 0000000..f6f3383
---- /dev/null
-+++ b/bazel/emscripten_toolchain/emdwp-emscripten_bin_linux_arm64.sh
-@@ -0,0 +1,10 @@
-+#!/bin/bash
-+#
-+#  This script differs in form from emcc.{py,bat}/…, because bazel are limited/bugged in the way of executing dwp tool.
-+#  Bazel dwp action configuration does not pass environment variables, so we cannot use them in this script.
-+#  For more info, see PR discussion and bazel issue:
-+#  - https://github.com/emscripten-core/emsdk/pull/1531#discussion_r1962090650
-+#  - https://github.com/bazelbuild/bazel/issues/25336
-+#
-+
-+exec external/emscripten_bin_linux_arm64/bin/llvm-dwp "$@"
-diff --git a/bazel/emscripten_toolchain/emdwp-emscripten_bin_mac.sh b/bazel/emscripten_toolchain/emdwp-emscripten_bin_mac.sh
-new file mode 100755
-index 0000000..0f97690
---- /dev/null
-+++ b/bazel/emscripten_toolchain/emdwp-emscripten_bin_mac.sh
-@@ -0,0 +1,10 @@
-+#!/bin/bash
-+#
-+#  This script differs in form from emcc.{py,bat}/…, because bazel are limited/bugged in the way of executing dwp tool.
-+#  Bazel dwp action configuration does not pass environment variables, so we cannot use them in this script.
-+#  For more info, see PR discussion and bazel issue:
-+#  - https://github.com/emscripten-core/emsdk/pull/1531#discussion_r1962090650
-+#  - https://github.com/bazelbuild/bazel/issues/25336
-+#
-+
-+exec external/emscripten_bin_mac/bin/llvm-dwp "$@"
-diff --git a/bazel/emscripten_toolchain/emdwp-emscripten_bin_mac_arm64.sh b/bazel/emscripten_toolchain/emdwp-emscripten_bin_mac_arm64.sh
-new file mode 100755
-index 0000000..4ae033c
---- /dev/null
-+++ b/bazel/emscripten_toolchain/emdwp-emscripten_bin_mac_arm64.sh
-@@ -0,0 +1,10 @@
-+#!/bin/bash
-+#
-+#  This script differs in form from emcc.{py,bat}/…, because bazel are limited/bugged in the way of executing dwp tool.
-+#  Bazel dwp action configuration does not pass environment variables, so we cannot use them in this script.
-+#  For more info, see PR discussion and bazel issue:
-+#  - https://github.com/emscripten-core/emsdk/pull/1531#discussion_r1962090650
-+#  - https://github.com/bazelbuild/bazel/issues/25336
-+#
-+
-+exec external/emscripten_bin_mac_arm64/bin/llvm-dwp "$@"
-diff --git a/bazel/emscripten_toolchain/emdwp-emscripten_bin_win.bat b/bazel/emscripten_toolchain/emdwp-emscripten_bin_win.bat
-new file mode 100644
-index 0000000..3cb1f2e
---- /dev/null
-+++ b/bazel/emscripten_toolchain/emdwp-emscripten_bin_win.bat
-@@ -0,0 +1,10 @@
-+::
-+::  This script differs in form from emcc.{py,bat}/…, because bazel are limited/bugged in the way of executing dwp tool.
-+::  Bazel dwp action configuration does not pass environment variables, so we cannot use them in this script.
-+::  For more info, see PR discussion and bazel issue:
-+::  - https://github.com/emscripten-core/emsdk/pull/1531#discussion_r1962090650
-+::  - https://github.com/bazelbuild/bazel/issues/25336
-+::
-+@ECHO OFF
-+
-+call external\emscripten_bin_win\bin\llvm-dwp %*
 diff --git a/bazel/emscripten_toolchain/link_wrapper.py b/bazel/emscripten_toolchain/link_wrapper.py
 index 2215a2f..4dfc180 100644
 --- a/bazel/emscripten_toolchain/link_wrapper.py
