@@ -57,11 +57,6 @@ index b4ead6e..20b6eb2 100755
  source $(dirname $0)/env.sh
  
 -exec python3 $EMSCRIPTEN/emar.py "$@"
-+# Convert relative path to absolute using PWD environment variable
-+if [[ "$EMSDK_PYTHON" != /* ]]; then
-+    EMSDK_PYTHON="$(realpath "${EMSDK_PYTHON}")"
-+fi
-+
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
@@ -87,11 +82,6 @@ index 5fdaf9c..34c09f7 100755
  source $(dirname $0)/env.sh
  
 -exec python3 $EMSCRIPTEN/emcc.py "$@"
-+# Convert relative path to absolute using PWD environment variable
-+if [[ "$EMSDK_PYTHON" != /* ]]; then
-+    EMSDK_PYTHON="$(realpath "${EMSDK_PYTHON}")"
-+fi
-+
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
@@ -128,11 +118,6 @@ index 44f3235..0095668 100755
  source $(dirname $0)/env.sh
  
 -exec python3 $(dirname $0)/link_wrapper.py "$@"
-+# Convert relative path to absolute using PWD environment variable
-+if [[ "$EMSDK_PYTHON" != /* ]]; then
-+    EMSDK_PYTHON="$(realpath "${EMSDK_PYTHON}")"
-+fi
-+
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
