@@ -1,7 +1,7 @@
-diff --git a/bazel/emscripten_build_file.bzl b/bazel/emscripten_build_file.bzl
+diff --git a/emscripten_build_file.bzl b/emscripten_build_file.bzl
 index 0d7aff2..07809ff 100644
---- a/bazel/emscripten_build_file.bzl
-+++ b/bazel/emscripten_build_file.bzl
+--- a/emscripten_build_file.bzl
++++ b/emscripten_build_file.bzl
 @@ -91,3 +91,10 @@ filegroup(
      ),
  )
@@ -13,20 +13,20 @@ index 0d7aff2..07809ff 100644
 +        "bin/llvm-dwp{bin_extension}",
 +    ],
 +)
-diff --git a/bazel/emscripten_toolchain/emar.bat b/bazel/emscripten_toolchain/emar.bat
+diff --git a/emscripten_toolchain/emar.bat b/emscripten_toolchain/emar.bat
 index c806808..bb147b3 100644
---- a/bazel/emscripten_toolchain/emar.bat
-+++ b/bazel/emscripten_toolchain/emar.bat
+--- a/emscripten_toolchain/emar.bat
++++ b/emscripten_toolchain/emar.bat
 @@ -2,4 +2,4 @@
  
  call %~dp0\env.bat
  
 -py -3 %EMSCRIPTEN%\emar.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emar.py %*
-diff --git a/bazel/emscripten_toolchain/emar.sh b/bazel/emscripten_toolchain/emar.sh
+diff --git a/emscripten_toolchain/emar.sh b/emscripten_toolchain/emar.sh
 index b4ead6e..d57222f 100755
---- a/bazel/emscripten_toolchain/emar.sh
-+++ b/bazel/emscripten_toolchain/emar.sh
+--- a/emscripten_toolchain/emar.sh
++++ b/emscripten_toolchain/emar.sh
 @@ -2,4 +2,11 @@
  
  source $(dirname $0)/env.sh
@@ -40,20 +40,20 @@ index b4ead6e..d57222f 100755
 +export PATH=$PYBINPATH:$PATH
 +
 +exec $EMSDK_PYTHON $EMSCRIPTEN/emar.py "$@"
-diff --git a/bazel/emscripten_toolchain/emcc.bat b/bazel/emscripten_toolchain/emcc.bat
+diff --git a/emscripten_toolchain/emcc.bat b/emscripten_toolchain/emcc.bat
 index 4088bc4..520135f 100644
---- a/bazel/emscripten_toolchain/emcc.bat
-+++ b/bazel/emscripten_toolchain/emcc.bat
+--- a/emscripten_toolchain/emcc.bat
++++ b/emscripten_toolchain/emcc.bat
 @@ -2,4 +2,4 @@
  
  call %~dp0\env.bat
  
 -py -3 %EMSCRIPTEN%\emcc.py %*
 +%EMSDK_PYTHON% %EMSCRIPTEN%\emcc.py %*
-diff --git a/bazel/emscripten_toolchain/emcc.sh b/bazel/emscripten_toolchain/emcc.sh
+diff --git a/emscripten_toolchain/emcc.sh b/emscripten_toolchain/emcc.sh
 index 5fdaf9c..f84dac0 100755
---- a/bazel/emscripten_toolchain/emcc.sh
-+++ b/bazel/emscripten_toolchain/emcc.sh
+--- a/emscripten_toolchain/emcc.sh
++++ b/emscripten_toolchain/emcc.sh
 @@ -2,4 +2,11 @@
  
  source $(dirname $0)/env.sh
@@ -67,20 +67,10 @@ index 5fdaf9c..f84dac0 100755
 +export PATH=$PYBINPATH:$PATH
 +
 +exec $EMSDK_PYTHON $EMSCRIPTEN/emcc.py "$@"
-diff --git a/bazel/emscripten_toolchain/emcc_link.bat b/bazel/emscripten_toolchain/emcc_link.bat
-index f49cb0d..ccafa13 100644
---- a/bazel/emscripten_toolchain/emcc_link.bat
-+++ b/bazel/emscripten_toolchain/emcc_link.bat
-@@ -2,4 +2,4 @@
- 
- call %~dp0\env.bat
- 
--py -3 %~dp0\link_wrapper.py %*
-+%EMSDK_PYTHON% %~dp0\link_wrapper.py %*
-diff --git a/bazel/emscripten_toolchain/emcc_link.sh b/bazel/emscripten_toolchain/emcc_link.sh
-index 44f3235..950e529 100755
---- a/bazel/emscripten_toolchain/emcc_link.sh
-+++ b/bazel/emscripten_toolchain/emcc_link.sh
+diff --git a/emscripten_toolchain/emcc_link.sh b/emscripten_toolchain/emcc_link.sh
+index 44f3235..96e5818 100755
+--- a/emscripten_toolchain/emcc_link.sh
++++ b/emscripten_toolchain/emcc_link.sh
 @@ -2,4 +2,11 @@
  
  source $(dirname $0)/env.sh
@@ -93,103 +83,38 @@ index 44f3235..950e529 100755
 +PYBINPATH="$(dirname "${EMSDK_PYTHON}")"
 +export PATH=$PYBINPATH:$PATH
 +
-+exec $EMSDK_PYTHON $(dirname $0)/link_wrapper.py "$@"
-diff --git a/bazel/emscripten_toolchain/toolchain.bzl b/bazel/emscripten_toolchain/toolchain.bzl
-index 80f55f6..1bb4713 100644
---- a/bazel/emscripten_toolchain/toolchain.bzl
-+++ b/bazel/emscripten_toolchain/toolchain.bzl
-@@ -1058,6 +1058,17 @@ def _impl(ctx):
-         ),
-     ]
- 
-+    # Get Python interpreter path
-+    python_files = ctx.attr._py_interpreter[DefaultInfo].files.to_list()
-+    python_bin_path = None
-+    for f in python_files:
-+        if f.basename == "python3" or "/bin/python3" in f.path:
-+            python_bin_path = f.path
-+            break
-+    
-+    if not python_bin_path:
-+        fail("Could not find python3 binary in _py_interpreter")
-+    
-     crosstool_default_env_sets = [
-         # Globals
-         env_set(
-@@ -1077,6 +1088,10 @@ def _impl(ctx):
-                     key = "NODE_JS_PATH",
-                     value = nodejs_path,
-                 ),
-+                env_entry(
-+                    key = "EMSDK_PYTHON",
-+                    value = _os_path(ctx, python_bin_path),
-+                ),
-             ],
-         ),
-         # Use llvm backend.  Off by default, enabled via --features=llvm_backend
-@@ -1152,7 +1167,8 @@ emscripten_cc_toolchain_config_rule = rule(
++exec $EMSDK_PYTHON $EM_BIN_PATH/../../emscripten/emscripten/link.py "$@"
+diff --git a/emscripten_toolchain/toolchain.bzl b/emscripten_toolchain/toolchain.bzl
+index 80f55f6..f76f13b 100644
+--- a/emscripten_toolchain/toolchain.bzl
++++ b/emscripten_toolchain/toolchain.bzl
+@@ -1148,6 +1148,10 @@ def _impl(ctx):
+ emscripten_cc_toolchain_config_rule = rule(
+     implementation = _impl,
+     attrs = {
++        "_py_interpreter": attr.label(
++            cfg = "exec",
++            default = Label("@rules_python//python:current_py_toolchain"),
++        ),
+         "cpu": attr.string(mandatory = True, values = ["asmjs", "wasm"]),
          "em_config": attr.label(mandatory = True, allow_single_file = True),
          "emscripten_binaries": attr.label(mandatory = True, cfg = "exec"),
-         "nodejs_bin": attr.label(mandatory = True, allow_single_file = True),
--        "script_extension": attr.string(mandatory = True, values = ["sh", "bat"]),
-+        "is_windows": attr.bool(mandatory = True),
-+        "_py_interpreter": attr.label(cfg = "exec", default = Label("@rules_python//python:current_py_toolchain")),
-     },
-     provides = [CcToolchainConfigInfo],
- )
-diff --git a/bazel/emscripten_toolchain/wasm_binary.py b/bazel/emscripten_toolchain/wasm_binary.py
-index d7d6142..210300b 100644
---- a/bazel/emscripten_toolchain/wasm_binary.py
-+++ b/bazel/emscripten_toolchain/wasm_binary.py
-@@ -14,6 +14,7 @@ WebAssembly binary into a larger web application.
- import argparse
- import os
- import tarfile
-+import shutil
- 
- 
- def ensure(f):
-@@ -26,6 +27,7 @@ def main():
-   parser = argparse.ArgumentParser()
-   parser.add_argument('--archive', help='The archive to extract from.')
-   parser.add_argument('--outputs', help='Comma separated list of files that should be extracted from the archive. Only the extname has to match a file in the archive.')
-+  parser.add_argument('--dwp_file', help='The dwp file to copy.')
-   parser.add_argument('--allow_empty_outputs', help='If an output listed in --outputs does not exist, create it anyways.', action='store_true')
-   args = parser.parse_args()
- 
-@@ -52,5 +54,16 @@ def main():
-       print("[ERROR] Archive does not contain file with extname: %s" % extname)
- 
- 
-+if __name__ == '__main__':
-+  main()
-+  
-+  # Handle dwp file if provided
-+  if args.dwp_file and os.path.exists(args.dwp_file):
-+    for output in args.outputs:
-+      if output.endswith('.dwp'):
-+        shutil.copy2(args.dwp_file, output)
-+        break
-+
-+
- if __name__ == '__main__':
-   main()
-diff --git a/bazel/emscripten_toolchain/wasm_cc_binary.bzl b/bazel/emscripten_toolchain/wasm_cc_binary.bzl
-index e7bd8ef..3510a3e 100644
---- a/bazel/emscripten_toolchain/wasm_cc_binary.bzl
-+++ b/bazel/emscripten_toolchain/wasm_cc_binary.bzl
-@@ -100,6 +100,10 @@ _WASM_BINARY_COMMON_ATTRS = {
-         cfg = "exec",
-         default = Label("@emsdk//emscripten_toolchain:wasm_binary"),
+diff --git a/emscripten_toolchain/wasm_cc_binary.bzl b/emscripten_toolchain/wasm_cc_binary.bzl
+index e7bd8ef..68fe28b 100644
+--- a/emscripten_toolchain/wasm_cc_binary.bzl
++++ b/emscripten_toolchain/wasm_cc_binary.bzl
+@@ -95,6 +95,10 @@ _WASM_BINARY_COMMON_ATTRS = {
+         default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
      ),
+     "_wasm_binary_extractor": attr.label(
 +    "_python_runtime": attr.label(
 +        cfg = "exec",
 +        default = Label("@rules_python//python:current_py_toolchain"),
 +    ),
- }
- 
- def _wasm_cc_binary_impl(ctx):
-@@ -137,6 +141,14 @@ def _wasm_cc_binary_impl(ctx):
+         executable = True,
+         allow_files = True,
+         cfg = "exec",
+@@ -137,6 +141,18 @@ def _wasm_cc_binary_impl(ctx):
  
  def _wasm_cc_binary_legacy_impl(ctx):
      cc_target = ctx.attr.cc_target[0]
@@ -201,10 +126,14 @@ index e7bd8ef..3510a3e 100644
 +            python_bin_path = f.path
 +            break
 +    
++    env = dict(ctx.configuration.default_shell_env)
++    if python_bin_path:
++        env["PATH"] = "%s:/usr/bin:/bin" % python_bin_path.rpartition("/")[0]
++
      outputs = [
          ctx.outputs.loader,
          ctx.outputs.wasm,
-@@ -144,6 +156,7 @@ def _wasm_cc_binary_legacy_impl(ctx):
+@@ -144,6 +160,7 @@ def _wasm_cc_binary_legacy_impl(ctx):
          ctx.outputs.data,
          ctx.outputs.symbols,
          ctx.outputs.dwarf,
@@ -212,7 +141,7 @@ index e7bd8ef..3510a3e 100644
          ctx.outputs.html,
      ]
  
-@@ -153,10 +166,13 @@ def _wasm_cc_binary_legacy_impl(ctx):
+@@ -153,10 +170,11 @@ def _wasm_cc_binary_legacy_impl(ctx):
      args.add_joined("--outputs", outputs, join_with = ",")
  
      ctx.actions.run(
@@ -221,13 +150,11 @@ index e7bd8ef..3510a3e 100644
          outputs = outputs,
          arguments = [args],
          executable = ctx.executable._wasm_binary_extractor,
-+        env = dict(ctx.configuration.default_shell_env)
-+        env["PATH"] = "%s:/usr/bin:/bin" % python_bin_path.rpartition("/")[0] if python_bin_path else "/usr/bin:/bin",
 +        env = env,
      )
  
      return [
-@@ -191,6 +207,7 @@ def _wasm_binary_legacy_outputs(name, cc_target):
+@@ -191,6 +209,7 @@ def _wasm_binary_legacy_outputs(name, cc_target):
          "data": "{}/{}.data".format(name, basename),
          "symbols": "{}/{}.js.symbols".format(name, basename),
          "dwarf": "{}/{}.wasm.debug.wasm".format(name, basename),
@@ -235,7 +162,7 @@ index e7bd8ef..3510a3e 100644
          "html": "{}/{}.html".format(name, basename),
      }
  
-@@ -200,6 +217,7 @@ _wasm_cc_binary_legacy = rule(
+@@ -200,6 +219,7 @@ _wasm_cc_binary_legacy = rule(
      implementation = _wasm_cc_binary_legacy_impl,
      attrs = _WASM_BINARY_COMMON_ATTRS,
      outputs = _wasm_binary_legacy_outputs,
