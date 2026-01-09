@@ -52,7 +52,7 @@ diff --git a/bazel/emscripten_toolchain/emar.sh b/bazel/emscripten_toolchain/ema
 index b4ead6e..20b6eb2 100755
 --- a/bazel/emscripten_toolchain/emar.sh
 +++ b/bazel/emscripten_toolchain/emar.sh
-@@ -2,4 +2,12 @@
+@@ -2,4 +2,8 @@
  
  source $(dirname $0)/env.sh
  
@@ -75,7 +75,7 @@ diff --git a/bazel/emscripten_toolchain/emcc.sh b/bazel/emscripten_toolchain/emc
 index 5fdaf9c..34c09f7 100755
 --- a/bazel/emscripten_toolchain/emcc.sh
 +++ b/bazel/emscripten_toolchain/emcc.sh
-@@ -1,5 +1,13 @@
+@@ -1,5 +1,9 @@
 -#!/bin/bash
 +#!/bin/bash -e
  
@@ -113,7 +113,7 @@ diff --git a/bazel/emscripten_toolchain/emcc_link.sh b/bazel/emscripten_toolchai
 index 44f3235..0095668 100755
 --- a/bazel/emscripten_toolchain/emcc_link.sh
 +++ b/bazel/emscripten_toolchain/emcc_link.sh
-@@ -2,4 +2,12 @@
+@@ -2,4 +2,8 @@
  
  source $(dirname $0)/env.sh
  
