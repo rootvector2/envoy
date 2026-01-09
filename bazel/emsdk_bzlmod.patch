@@ -368,13 +368,18 @@ index e7bd8ef..ecae605 100644
 +        inputs = inputs + [dwp_file]
 +
 +    py_toolchain = ctx.toolchains["@rules_python//python:toolchain_type"]
++    python_files = py_toolchain.py3_runtime.files.to_list()
++    print("DEBUG: Python files count:", len(python_files))
++    for f in python_files[:5]:  # Print first 5
++        print("DEBUG: Python file:", f.path)
 +    python_path = py_toolchain.py3_runtime.interpreter.path
++    print("DEBUG: Python interpreter path:", python_path)
 +    env = dict(ctx.configuration.default_shell_env)
 +    env["PATH"] = "%s:/usr/bin:/bin" % python_path.rpartition("/")[0]
 +
      ctx.actions.run(
 -        inputs = ctx.files.cc_target,
-+        inputs = inputs + py_toolchain.py3_runtime.files.to_list(),
++        inputs = inputs + python_files,
          outputs = outputs,
          executable = ctx.executable._wasm_binary_extractor,
 +        arguments = [args],
